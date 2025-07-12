@@ -181,7 +181,7 @@ const BarcodeGame: React.FC = () => {
                   handleDecode(detectedCodes[0].rawValue);
                 }
               }}
-              constraints={{ facingMode: "environment" }}
+              constraints={{ facingMode: "user"}} 
             />
             <FrameOverlay />
           </div>
