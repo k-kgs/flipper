@@ -465,8 +465,8 @@ const BarcodeGame: React.FC = () => {
       <Scanner
         key={scannerKey}
         onScan={handleScan}
-        constraints={{ facingMode: "environment" }}
-        style={{ width: "100vw", height: "100vh" }}
+        constraints={{ facingMode: "user" }}
+        styles={{ container: { width: "100vw", height: "100vh" } }}
       />
       {flash && (
         <div style={{
