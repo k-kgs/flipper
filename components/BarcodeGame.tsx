@@ -369,6 +369,119 @@
 
 
 
+// import React, { useRef, useState, useEffect } from "react";
+// import { Scanner } from "@yudiel/react-qr-scanner";
+
+// const LOCK_DURATION = 5000;
+
+// function getRandomColor() {
+//   return `rgba(${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)},0.65)`;
+// }
+
+// const BarcodeGame: React.FC = () => {
+//   const [scanCount, setScanCount] = useState(0);
+//   const [flash, setFlash] = useState<string | null>(null);
+//   const [locked, setLocked] = useState(false);
+//   const lockedRef = useRef(false); // KEY: sync lock for handler logic
+//   const [scannerKey, setScannerKey] = useState(0);
+//   const [countdown, setCountdown] = useState(0);
+
+//   const lockTimeout = useRef<NodeJS.Timeout | null>(null);
+//   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
+
+//   useEffect(() => {
+//     lockedRef.current = locked; // always sync ref to state
+//     // For debug:
+//     console.log("RENDER:", { scanCount, locked, flash, countdown, scannerKey });
+//   }, [locked, scanCount, flash, countdown, scannerKey]);
+
+//   const handleScan = (codes: Array<{ rawValue: string }>) => {
+//     console.log("SCAN_EVENT:", {
+//       codes,
+//       locked: lockedRef.current,
+//       scanCount,
+//       flash,
+//       countdown,
+//     });
+
+//     if (!codes.length || lockedRef.current) return;
+
+//     setScanCount((c) => c + 1);
+//     setFlash(getRandomColor());
+//     setLocked(true);
+//     lockedRef.current = true; // update ref immediately for events
+//     setCountdown(5);
+//     setScannerKey((k) => k + 1);
+
+//     // Lock and flash clear after 5s
+//     if (lockTimeout.current) clearTimeout(lockTimeout.current);
+//     lockTimeout.current = setTimeout(() => {
+//       setLocked(false);
+//       lockedRef.current = false;
+//       setFlash(null);
+//       setCountdown(0);
+//       console.log("LOCK RELEASED");
+//     }, LOCK_DURATION);
+
+//     // Countdown
+//     if (countdownInterval.current) clearInterval(countdownInterval.current);
+//     let sec = 5;
+//     countdownInterval.current = setInterval(() => {
+//       sec--;
+//       setCountdown(sec);
+//       if (sec <= 0 && countdownInterval.current) clearInterval(countdownInterval.current);
+//     }, 1000);
+//   };
+
+//   // Clean up
+//   useEffect(() => {
+//     return () => {
+//       if (lockTimeout.current) clearTimeout(lockTimeout.current);
+//       if (countdownInterval.current) clearInterval(countdownInterval.current);
+//     };
+//   }, []);
+
+//   return (
+//     <div style={{ width: "100vw", height: "100vh", background: "#111", position: "relative" }}>
+//       <div style={{
+//         position: "absolute", top: 20, left: 0, width: "100vw", zIndex: 10001,
+//         display: "flex", flexDirection: "column", alignItems: "center"
+//       }}>
+//         <div style={{
+//           fontSize: 22, fontWeight: 700, color: "#fff",
+//           background: "#222", borderRadius: 12, padding: "8px 18px", marginBottom: 8
+//         }}>
+//           Scans: {scanCount}
+//         </div>
+//         {locked && (
+//           <div style={{
+//             fontSize: 18, fontWeight: 600, color: "#ffe600",
+//             background: "#333", borderRadius: 12, padding: "8px 18px"
+//           }}>
+//             Please wait {countdown}s...
+//           </div>
+//         )}
+//       </div>
+//       <Scanner
+//         key={scannerKey}
+//         onScan={handleScan}
+//         constraints={{ facingMode: "user" }}
+//         styles={{ container: { width: "100vw", height: "100vh" } }}
+//       />
+//       {flash && (
+//         <div style={{
+//           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+//           background: flash, pointerEvents: "none", zIndex: 9999,
+//           transition: "opacity 0.4s"
+//         }} />
+//       )}
+//     </div>
+//   );
+// };
+
+// export default BarcodeGame;
+
+
 import React, { useRef, useState, useEffect } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
@@ -382,48 +495,42 @@ const BarcodeGame: React.FC = () => {
   const [scanCount, setScanCount] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
-  const lockedRef = useRef(false); // KEY: sync lock for handler logic
   const [scannerKey, setScannerKey] = useState(0);
   const [countdown, setCountdown] = useState(0);
+  const [gameActive, setGameActive] = useState(false);
 
+  const lockedRef = useRef(false);
   const lockTimeout = useRef<NodeJS.Timeout | null>(null);
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    lockedRef.current = locked; // always sync ref to state
-    // For debug:
-    console.log("RENDER:", { scanCount, locked, flash, countdown, scannerKey });
-  }, [locked, scanCount, flash, countdown, scannerKey]);
+    lockedRef.current = locked;
+  }, [locked]);
+
+  useEffect(() => {
+    return () => {
+      if (lockTimeout.current) clearTimeout(lockTimeout.current);
+      if (countdownInterval.current) clearInterval(countdownInterval.current);
+    };
+  }, []);
 
   const handleScan = (codes: Array<{ rawValue: string }>) => {
-    console.log("SCAN_EVENT:", {
-      codes,
-      locked: lockedRef.current,
-      scanCount,
-      flash,
-      countdown,
-    });
-
     if (!codes.length || lockedRef.current) return;
-
     setScanCount((c) => c + 1);
     setFlash(getRandomColor());
     setLocked(true);
-    lockedRef.current = true; // update ref immediately for events
+    lockedRef.current = true;
     setCountdown(5);
     setScannerKey((k) => k + 1);
 
-    // Lock and flash clear after 5s
     if (lockTimeout.current) clearTimeout(lockTimeout.current);
     lockTimeout.current = setTimeout(() => {
       setLocked(false);
       lockedRef.current = false;
       setFlash(null);
       setCountdown(0);
-      console.log("LOCK RELEASED");
     }, LOCK_DURATION);
 
-    // Countdown
     if (countdownInterval.current) clearInterval(countdownInterval.current);
     let sec = 5;
     countdownInterval.current = setInterval(() => {
@@ -433,41 +540,99 @@ const BarcodeGame: React.FC = () => {
     }, 1000);
   };
 
-  // Clean up
-  useEffect(() => {
-    return () => {
-      if (lockTimeout.current) clearTimeout(lockTimeout.current);
-      if (countdownInterval.current) clearInterval(countdownInterval.current);
-    };
-  }, []);
+  const startGame = () => {
+    setScanCount(0);
+    setFlash(null);
+    setLocked(false);
+    lockedRef.current = false;
+    setCountdown(0);
+    setScannerKey(0);
+    setGameActive(true);
+    if (lockTimeout.current) clearTimeout(lockTimeout.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+  };
+
+  const endGame = () => {
+    setGameActive(false);
+    setFlash(null);
+    setLocked(false);
+    lockedRef.current = false;
+    setCountdown(0);
+    setScannerKey((k) => k + 1); // unmount scanner for sure
+    if (lockTimeout.current) clearTimeout(lockTimeout.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+  };
 
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#111", position: "relative" }}>
-      <div style={{
-        position: "absolute", top: 20, left: 0, width: "100vw", zIndex: 10001,
-        display: "flex", flexDirection: "column", alignItems: "center"
-      }}>
+      {/* Controls */}
+      <div style={{ position: "absolute", top: 24, width: "100vw", zIndex: 10001, display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{
           fontSize: 22, fontWeight: 700, color: "#fff",
           background: "#222", borderRadius: 12, padding: "8px 18px", marginBottom: 8
         }}>
           Scans: {scanCount}
         </div>
-        {locked && (
+        {gameActive && locked && (
           <div style={{
             fontSize: 18, fontWeight: 600, color: "#ffe600",
-            background: "#333", borderRadius: 12, padding: "8px 18px"
+            background: "#333", borderRadius: 12, padding: "8px 18px", marginBottom: 12
           }}>
             Please wait {countdown}s...
           </div>
         )}
+        <div style={{ margin: "16px 0" }}>
+          <button
+            onClick={startGame}
+            disabled={gameActive}
+            style={{
+              background: gameActive ? "#aaa" : "linear-gradient(90deg,#00c6ff,#0072ff)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "12px 24px",
+              fontSize: "1.1rem",
+              fontWeight: 600,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              transition: "background 0.3s",
+              opacity: gameActive ? 0.7 : 1,
+              marginRight: 8,
+            }}
+          >
+            Start Game
+          </button>
+          <button
+            onClick={endGame}
+            disabled={!gameActive}
+            style={{
+              background: !gameActive ? "#aaa" : "linear-gradient(90deg,#ff512f,#dd2476)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "12px 24px",
+              fontSize: "1.1rem",
+              fontWeight: 600,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              transition: "background 0.3s",
+              opacity: !gameActive ? 0.7 : 1,
+            }}
+          >
+            End Game
+          </button>
+        </div>
       </div>
-      <Scanner
-        key={scannerKey}
-        onScan={handleScan}
-        constraints={{ facingMode: "user" }}
-        styles={{ container: { width: "100vw", height: "100vh" } }}
-      />
+      {/* The QR Scanner */}
+      {gameActive && (
+        <Scanner
+          key={scannerKey}
+          onScan={handleScan}
+          constraints={{ facingMode: "environment" }} // or "user"
+          styles={{
+            container: { width: "100vw", height: "100vh" }
+          }}
+        />
+      )}
+      {/* Full-Screen Color Flash */}
       {flash && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
