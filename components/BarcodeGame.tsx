@@ -626,7 +626,7 @@ const BarcodeGame: React.FC = () => {
         <Scanner
           key={scannerKey}
           onScan={handleScan}
-          constraints={{ facingMode: "environment" }} // or "user"
+          constraints={{ facingMode: "user" }} // or "user"
           styles={{
             container: { width: "100vw", height: "100vh" }
           }}
